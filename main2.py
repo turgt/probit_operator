@@ -53,7 +53,7 @@ def place_order(symbol, price, quantity, trade_type, order_type):
     "type": order_type,
     "side": trade_type,
     "time_in_force": "gtc",
-    "limit_price": str(float("{:.7f}".format(price))),
+    "limit_price": str(float("{:.2f}".format(price))),
     "quantity": str(int(quantity))
     }
     r = requests.request('POST', url, headers=headers, json=payload)
