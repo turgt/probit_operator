@@ -1,5 +1,6 @@
 import sys
 import requests
+from decimal import *
 import time
 import base64
 
@@ -23,6 +24,25 @@ def get_token():
     response = requests.request("POST", url, json=payload, headers=headers)
 
     return response.json()['access_token']
+
+def get_precision(symbol):
+    url = "https://api.probit.com/api/exchange/v1/market"
+
+    headers = {"Accept": "application/json"}
+
+    response = requests.request("GET", url, headers=headers)
+
+    a = next( x for x in response.json()['data'] if x['id'] == symbol)
+    return a['quantity_precision']
+
+def get_markets():
+    url = "https://api.probit.com/api/exchange/v1/market"
+
+    headers = {"Accept": "application/json"}
+
+    response = requests.request("GET", url, headers=headers)
+
+    return response.json()['data']
 
 
 def get_ticker(symbol):
@@ -81,13 +101,25 @@ if __name__ == '__main__':
     #multipler = float(1.2)
     #sleep = int(2)
     #symbol = 'hot'
+
+    
     
     
     symbol = symbol.upper()+"-USDT"
+    
 
     y = get_ticker(symbol)
     order = float(y['data'][0]['last']) * (rate + 100) * 0.01
-    count = USDT / order
+
+    prec = get_precision(symbol)
+    if prec != 0:
+        getcontext().prec = prec
+        count = Decimal(USDT) / Decimal(order)
+        count2 = count - Decimal(count * 0.03 / 100)
+    else:
+        count = USDT / order
+        count2 = int(count - Decimal(count * 0.03 / 100))
+    
 
     res = place_order(symbol, order, count, 'buy', 'limit')
     print(res.json())
@@ -97,7 +129,7 @@ if __name__ == '__main__':
         if sleep != 0:
             time.sleep(sleep)
         print(str(order) + "----------" + str(order*multipler))
-        res = place_order(symbol, order * multipler, count - (count * 0.03 / 100), 'sell', 'limit')
+        res = place_order(symbol, order * multipler, count2, 'sell', 'limit')
         print(res.json())
         if res.status_code == 200:
             print("\nPlaced Sell\n")
