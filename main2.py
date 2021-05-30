@@ -115,10 +115,10 @@ if __name__ == '__main__':
     if prec != 0:
         getcontext().prec = prec
         count = Decimal(USDT) / Decimal(order)
-        count2 = count - Decimal(count * 0.03 / 100)
+        count2 = Decimal(count) - Decimal(count * 0.03 / 100)
     else:
         count = USDT / order
-        count2 = int(count - Decimal(count * 0.03 / 100))
+        count2 = int(Decimal(count) - Decimal(count * 0.03 / 100))
     
 
     res = place_order(symbol, order, count, 'buy', 'limit')
